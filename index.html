@@ -1,13 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PyScript Test</title>
-  <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/pyscript.css" />
-  <script defer src="https://pyscript.net/releases/2024.1.1/pyscript.js"></script>
+    <title>Time Travel Challenge — PyScript Edition</title>
+
+    <!-- USE THIS VERSION OF PYSCRIPT (STABLE) -->
+  <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+<script defer src="https://pyscript.net/latest/pyscript.js"></script>
+
+
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: auto; text-align: center; padding: 20px; }
+        .option-btn { display: block; width: 90%; margin: 10px auto; padding: 14px; font-size: 16px; }
+    </style>
 </head>
+
 <body>
-  <py-script>
-    print("Hello from PyScript!")
-  </py-script>
+
+<h1>Time Travel Challenge — 1960s–1970s</h1>
+<div id="game"></div>
+
+<py-script>
+from js import document, alert, localStorage
+
+QUESTIONS = {
+    1: {"year":"1964","question":"Which band helped spark 'Beatlemania' in the U.S.?","options":["The Rolling Stones","The Beatles","The Kinks"],"answer":"The Beatles","fact":"The Beatles' 1964 Ed Sullivan appearance became iconic."},
+    2: {"year":"1969","question":"Which festival symbolized 1960s youth culture?","options":["Altamont","Monterey Pop","Woodstock"],"answer":"Woodstock","fact":"Woodstock became a cultural milestone."},
+    3: {"year":"1969","question":"Who performed the iconic U.S. anthem at Woodstock?","options":["Jimi Hendrix","Eric Clapton","Carlos Santana"],"answer":"Jimi Hendrix","fact":"Hendrix’s performance is legendary."},
+    4: {"year":"1961","question":"Which dance became a huge craze?","options":["Disco","Breakdancing","The Twist"],"answer":"The Twist","fact":"The Twist swept the early 60s."},
+    5: {"year":"1960","question":"Which animated family lived in the Stone Age?","options":["The Jetsons","Scooby-Doo","The Flintstones"],"answer":"The Flintstones","fact":"A classic animated sitcom."},
+    6: {"year":"1966","question":"Which group starred in a made-for-TV band show?","options":["The Beach Boys","The Monkees","The Doors"],"answer":"The Monkees","fact":"The Monkees became a real band."},
+    7: {"year":"1968","question":"Which Beatles song was written as encouragement?","options":["Hey Jude","Good Vibrations","Light My Fire"],"answer":"Hey Jude","fact":"One of their biggest hits."},
+    8: {"year":"1964","question":"Who won the heavyweight title and became Muhammad Ali?","options":["Joe Frazier","Cassius Clay","George Foreman"],"answer":"Cassius Clay","fact":"He later changed his name to Ali."},
+    9: {"year":"1960s","question":"Which fashion item became a youth trend?","options":["Top hats","Powdered wigs","Bell-bottom jeans"],"answer":"Bell-bottom jeans","fact":"A defining 60s–70s style."},
+    10: {"year":"1970s","question":"Which genre dominated youth music?","options":["Rock","Hip-hop","EDM"],"answer":"Rock","fact":"Rock exploded in popularity."},
+
+    11: {"year":"1961","question":"What made the first human spaceflight possible?","options":["Rocket propulsion","Jet skis","Steam engines"],"answer":"Rocket propulsion","fact":"Rockets enabled space travel."},
+    12: {"year":"1969","question":"Which mission landed humans on the Moon?","options":["Apollo 8","Apollo 11","Apollo 13"],"answer":"Apollo 11","fact":"First Moon landing."},
+    13: {"year":"1969","question":"Which network evolved into the internet?","options":["WWW","Bluetooth","ARPANET"],"answer":"ARPANET","fact":"Foundation of the internet."},
+    14: {"year":"1960s","question":"What replaced vacuum tubes?","options":["Typewriters","Transistors","Candles"],"answer":"Transistors","fact":"Made computers smaller."},
+    15: {"year":"1968","question":"Who demoed the computer mouse?","options":["Engelbart","Edison","Ford"],"answer":"Engelbart","fact":"The Mother of All Demos."},
+    16: {"year":"1962","question":"What photographed Cuban missile sites?","options":["Balloon","Sub camera","U-2 plane"],"answer":"U-2 plane","fact":"Critical Cold War intel."},
+    17: {"year":"1960s","question":"What enabled global TV/phone signals?","options":["Wagons","Satellites","Smoke signals"],"answer":"Satellites","fact":"Revolutionized communication."},
+    18: {"year":"1960s","question":"What enabled complex heart surgery?","options":["Heart-lung machine","Thermometer","Stethoscope"],"answer":"Heart-lung machine","fact":"Enabled open-heart surgery."},
+    19: {"year":"1971","question":"First widely used microprocessor?","options":["CD player","GPS","Intel 4004"],"answer":"Intel 4004","fact":"Started the microprocessor era."},
+    20: {"year":"1969","question":"Why was the Moon landing major?","options":["Cars could fly","Advanced engineering","Made games popular"],"answer":"Advanced engineering","fact":"Huge tech achievement."}
+}
+
+LEVEL_1_END = 10
+TOTAL = len(QUESTIONS)
+
+def get_high():
+    v = localStorage.getItem("tt_high")
+    return int(v) if v else 0
+
+def set_high(s):
+    localStorage.setItem("tt_high", str(s))
+
+class Game:
+    def __init__(self):
+        self.q = 1
+        self.score = 0
+        self.lives = 3
+        self.box = document.getElementById("game")
+        self.start()
+
+    def clear(self):
+        self.box.innerHTML = ""
+
+    def start(self):
+        self.clear()
+        high = get_high()
+        self.box.innerHTML = f"""
+            <h2>Welcome!</h2>
+            <p>High Score: {high}</p>
+            <button id='start'>Start Game</button>
+        """
+        document.getElementById("start").onclick = lambda e: self.show()
+
+    def show(self):
+        self.clear()
+        d = QUESTIONS[self.q]
+        lvl = 1 if self.q <= LEVEL_1_END else 2
+
+        self.box.innerHTML = f"""
+            <h2>Level {lvl} — Q{self.q} ({d['year']})</h2>
+            <p>Lives: {self.lives} | Score: {self.score}</p>
+            <p>{d['question']}</p>
+        """
+
+        for opt in d["options"]:
+            b = document.createElement("button")
+            b.innerText = opt
+            b.className = "option-btn"
+            b.onclick = lambda e, o=opt: self.check(o)
+            self.box.appendChild(b)
+
+    def check(self, choice):
+        d = QUESTIONS[self.q]
+        if choice == d["answer"]:
+            self.score += 10
+            alert("Correct! " + d["fact"])
+        else:
+            self.lives -= 1
+            alert(f"Wrong! Correct: {d['answer']}. Lives left: {self.lives}")
+            if self.lives <= 0:
+                return self.game_over()
+
+        self.next()
+
+    def next(self):
+        if self.q < TOTAL:
+            self.q += 1
+            self.show()
+        else:
+            self.end()
+
+    def game_over(self):
+        self.clear()
+        self.box.innerHTML = f"""
+            <h2>GAME OVER</h2>
+            <p>Score: {self.score}</p>
+            <button id='restart'>Restart</button>
+        """
+        document.getElementById("restart").onclick = lambda e: self.__init__()
+
+    def end(self):
+        self.clear()
+        high = get_high()
+        new = ""
+
+        if self.score > high:
+            set_high(self.score)
+            new = "<p>New High Score!</p>"
+            high = self.score
+
+        self.box.innerHTML = f"""
+            <h2>Time Travel Complete!</h2>
+            <p>Final Score: {self.score}</p>
+            <p>High Score: {high}</p>
+            {new}
+            <button id='restart'>Play Again</button>
+        """
+        document.getElementById("restart").onclick = lambda e: self.__init__()
+
+Game()
+</py-script>
+
 </body>
 </html>
